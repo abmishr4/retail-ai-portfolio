@@ -4,7 +4,7 @@ A "Customers Also Bought" recommendation experience built on transparent
 co-purchase statistics and visible business rules — a compact public demo
 of how I think about production recommendation systems.
 
-**Live demo:** _add your Streamlit URL here_
+**Live demo:** _https://retail-ai-portfolio-recs-ab.streamlit.app/_
 **Companion app:** Retail Assist (governed natural-language analytics) — same repo.
 
 ## What it is

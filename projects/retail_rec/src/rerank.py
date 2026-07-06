@@ -110,11 +110,50 @@ def main() -> None:
     stats["same_category_boosted"] = int(same_cat.sum())
     stats["low_confidence_penalized"] = int(low_conf.sum())
 
-    # Top-k direct recommendations per anchor.
-    direct = (cand.sort_values(["anchor_stock_code", "final_score"],
-                               ascending=[True, False])
-                  .groupby("anchor_stock_code").head(final_k).copy())
+    # Top-k direct recommendations per anchor — selected greedily with an
+    # MMR-style diversity penalty: each candidate's selection score is its
+    # final_score minus mmr_weight * max token-Jaccard similarity to items
+    # already picked. Dampens near-duplicates (five cakestands) while
+    # keeping legitimate variants. Token-based similarity is imperfect
+    # ("CAKESTAND" vs "CAKE STAND" tokenize differently) — accepted.
+    mmr_weight = float(cfg.get("diversity", {}).get("mmr_weight", 0.0))
+
+    def _toks(text):
+        return set(str(text).lower().split())
+
+    def diversify(group: pd.DataFrame, k: int, weight: float) -> pd.DataFrame:
+        group = group.sort_values("final_score", ascending=False)
+        if weight <= 0 or len(group) <= k:
+            out = group.head(k).copy()
+            out["_pick"] = range(len(out))
+            return out
+        cand_rows = list(group.itertuples())
+        toks = [_toks(r.recommended_description) for r in cand_rows]
+        picked, picked_toks, remaining = [], [], list(range(len(cand_rows)))
+        while remaining and len(picked) < k:
+            best_i, best_val = None, -1e9
+            for i in remaining:
+                sim = max((len(toks[i] & t) / len(toks[i] | t)
+                           for t in picked_toks), default=0.0)
+                val = cand_rows[i].final_score - weight * sim
+                if val > best_val:
+                    best_i, best_val = i, val
+            picked.append(cand_rows[best_i].Index)
+            picked_toks.append(toks[best_i])
+            remaining.remove(best_i)
+        out = group.loc[picked].copy()
+        out["_pick"] = range(len(out))
+        return out
+
+    # Explicit loop (not groupby.apply): pandas 2.x excludes the grouping
+    # column from groups passed to apply, which silently drops
+    # anchor_stock_code from the result.
+    parts = []
+    for _, g in cand.groupby("anchor_stock_code"):
+        parts.append(diversify(g, final_k, mmr_weight))
+    direct = pd.concat(parts).copy()
     direct["strategy"] = "Direct co-purchase"
+    stats["mmr_weight"] = mmr_weight
 
     # ------------------------------------------------------------------
     # 4. Fallback fill — category popularity, then global popularity
@@ -182,9 +221,12 @@ def main() -> None:
     print("[5/5] Writing final_recommendations.parquet")
     final = pd.concat([direct, fallback], ignore_index=True)
     final["_direct"] = (final["strategy"] == "Direct co-purchase").astype(int)
+    if "_pick" not in final.columns:
+        final["_pick"] = 0
+    final["_pick"] = final["_pick"].fillna(9999)
     final = final.sort_values(
-        ["anchor_stock_code", "_direct", "final_score"],
-        ascending=[True, False, False])
+        ["anchor_stock_code", "_direct", "_pick"],
+        ascending=[True, False, True])
     final["rank"] = final.groupby("anchor_stock_code").cumcount() + 1
     final = final[final["rank"] <= final_k]
 

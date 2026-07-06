@@ -1,0 +1,21 @@
+# Retail Rec — scoring configuration.
+# All scoring weights and business rules live HERE, not in Python, so anyone
+# can inspect (and reason about) the ranking logic without reading code.
+
+retrieval_weights:
+  lift: 0.40                 # co-purchase strength vs. baseline popularity
+  confidence: 0.35           # P(recommended in basket | anchor in basket)
+  co_purchase_count: 0.25    # log-scaled evidence volume (damps 1-basket noise)
+
+business_rules:
+  same_category_boost: 0.10      # small nudge toward coherent PDP experiences
+  low_confidence_penalty: 0.15   # applied when confidence < low_confidence_floor
+  low_confidence_floor: 0.02
+  out_of_stock_penalty: 1.00     # 1.00 = remove entirely (hard filter)
+  ineligible_penalty: 1.00       # 1.00 = remove entirely (hard filter)
+
+limits:
+  intermediate_top_k: 100    # candidates kept per anchor before reranking
+  final_top_k: 20            # recommendations served per anchor
+  max_large_basket_size: 50  # baskets above this are skipped as wholesale noise
+  min_co_purchase_count: 1   # sparse data: keep all evidence, let scoring damp it

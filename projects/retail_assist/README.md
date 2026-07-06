@@ -3,7 +3,7 @@
 A governed natural-language retail analytics assistant — a compact public
 demo of how I think about production AI/data systems.
 
-**Live demo:** _add your Streamlit URL here_
+**Live demo: https://retail-ai-portfolio-ab.streamlit.app/** 
 
 ## What it is
 

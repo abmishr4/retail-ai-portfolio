@@ -1,0 +1,24 @@
+# --- Python ---
+.venv/
+venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.pytest_cache/
+
+# --- OS ---
+.DS_Store
+
+# --- Secrets (NEVER commit) ---
+.env
+.streamlit/secrets.toml
+
+# --- Data ---
+# Raw source files are NOT committed (large, and reproducible from the public UCI page).
+projects/*/data/raw/
+projects/*/data/tmp/
+projects/*/artifacts/tmp/
+
+# IMPORTANT: projects/*/data/processed/ is intentionally NOT ignored.
+# The small parquet artifacts there MUST be committed so the deployed
+# Streamlit Cloud app has data to read (it never sees the raw Excel).

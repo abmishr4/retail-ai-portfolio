@@ -1,0 +1,13 @@
+# Root requirements for the Retail Assist app.
+# Streamlit Community Cloud installs dependencies from this single root file.
+# If a Cloud build ever breaks on a new release, pin the offending line (e.g. streamlit==x.y.z).
+
+streamlit
+pandas
+numpy
+duckdb
+pyarrow
+plotly
+pyyaml
+openpyxl        # reads the raw UCI "Online Retail.xlsx" during data prep
+google-genai    # current Gemini SDK (the old google-generativeai package is end-of-life)

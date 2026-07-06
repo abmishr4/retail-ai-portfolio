@@ -1,0 +1,51 @@
+question,should_answer,expected_intent,predicted_intent,predicted_metrics,predicted_dimensions,predicted_time_window,confidence,intent_ok,metrics_ok,dimensions_ok,time_window_ok,refusal_ok,execution_ok,semantic_ok
+What was revenue by month?,yes,revenue_trend,revenue_trend,revenue,month,all_time,0.8,True,True,True,True,True,True,True
+Show sales trend over time,yes,revenue_trend,revenue_trend,revenue,month,all_time,0.8,True,True,True,True,True,True,True
+How did revenue trend across the year?,yes,revenue_trend,revenue_trend,revenue,month,all_time,0.8,True,True,True,True,True,True,True
+Show monthly revenue,yes,revenue_trend,revenue_trend,revenue,month,all_time,0.8,True,True,True,True,True,True,True
+Compare revenue this month vs prior month,yes,revenue_trend,revenue_trend,revenue,month,mom,0.8,True,True,True,True,True,True,True
+What are the top products by revenue?,yes,top_products,top_products,revenue,product,all_time,0.95,True,True,True,True,True,True,True
+Which products sold the most units?,yes,top_products,top_products,units;revenue,product,all_time,0.95,True,True,True,True,True,True,True
+Show top products by gross margin,yes,top_products,top_products,gross_margin,product,all_time,0.95,True,True,True,True,True,True,True
+What were our best selling items?,yes,top_products,top_products,revenue,product,all_time,0.95,True,True,True,True,True,True,True
+Top 10 products by orders,yes,top_products,top_products,orders,product,all_time,0.95,True,True,True,True,True,True,True
+Which categories drove revenue?,yes,top_categories,top_categories,revenue,product_category,all_time,0.95,True,True,True,True,True,True,True
+What categories had the highest margin rate?,yes,top_categories,top_categories,margin_rate,product_category,all_time,0.95,True,True,True,True,True,True,True
+Show category performance,yes,top_categories,top_categories,revenue;orders,product_category,all_time,0.95,True,True,True,True,True,True,True
+Which product categories sold the most units?,yes,top_categories,top_categories,units;revenue,product_category,all_time,0.95,True,True,True,True,True,True,True
+Show revenue by category,yes,top_categories,top_categories,revenue,product_category,all_time,0.8,True,True,True,True,True,True,True
+What is AOV?,yes,aov_summary,aov_summary,aov;orders,,all_time,0.8,True,True,True,True,True,True,True
+What is the average order value?,yes,aov_summary,aov_summary,aov;orders,,all_time,0.8,True,True,True,True,True,True,True
+Show AOV by country,yes,country_order_volume,country_order_volume,aov,country,all_time,0.8,True,True,True,True,True,True,True
+Compare AOV by channel,yes,channel_summary,channel_summary,aov,channel,all_time,0.8,True,True,True,True,True,True,True
+Which customer segment has the highest AOV?,yes,customer_segment_summary,customer_segment_summary,aov,customer_segment,all_time,0.95,True,True,True,True,True,True,True
+Which countries had the most orders?,yes,country_order_volume,country_order_volume,orders,country,all_time,0.95,True,True,True,True,True,True,True
+Show revenue by country,yes,country_order_volume,country_order_volume,revenue,country,all_time,0.8,True,True,True,True,True,True,True
+Which country had the highest units?,yes,country_order_volume,country_order_volume,units,country,all_time,0.95,True,True,True,True,True,True,True
+Show orders by country,yes,country_order_volume,country_order_volume,orders,country,all_time,0.8,True,True,True,True,True,True,True
+Revenue by geography,yes,country_order_volume,country_order_volume,revenue,country,all_time,0.8,True,True,True,True,True,True,True
+Compare promo vs non-promo sales,yes,promo_comparison,promo_comparison,revenue,promo_flag,all_time,0.8,True,True,True,True,True,True,True
+Did promo orders have higher AOV?,yes,promo_comparison,promo_comparison,aov;orders,promo_flag,all_time,0.95,True,True,True,True,True,True,True
+Show margin rate by promo flag,yes,promo_comparison,promo_comparison,margin_rate,promo_flag,all_time,0.8,True,True,True,True,True,True,True
+How many orders were promotional?,yes,promo_comparison,promo_comparison,orders,promo_flag,all_time,0.8,True,True,True,True,True,True,True
+Promo vs non-promo revenue comparison,yes,promo_comparison,promo_comparison,revenue,promo_flag,all_time,0.8,True,True,True,True,True,True,True
+Which customer segments drive revenue?,yes,customer_segment_summary,customer_segment_summary,revenue,customer_segment,all_time,0.95,True,True,True,True,True,True,True
+Show AOV by customer segment,yes,customer_segment_summary,customer_segment_summary,aov,customer_segment,all_time,0.8,True,True,True,True,True,True,True
+Show revenue by channel,yes,channel_summary,channel_summary,revenue,channel,all_time,0.8,True,True,True,True,True,True,True
+Which channel had the highest AOV?,yes,channel_summary,channel_summary,aov,channel,all_time,0.95,True,True,True,True,True,True,True
+What is the fulfillment mix?,yes,fulfillment_mix,fulfillment_mix,revenue;orders,fulfillment_type,all_time,0.95,True,True,True,True,True,True,True
+Forecast profit for next quarter,no,unsupported,unsupported,,,all_time,0.95,True,True,True,True,True,True,True
+Why did customers churn?,no,unsupported,unsupported,,,all_time,0.95,True,True,True,True,True,True,True
+Predict the next purchase for each customer,no,unsupported,unsupported,,,all_time,0.95,True,True,True,True,True,True,True
+What is store-level inventory right now?,no,unsupported,unsupported,,,all_time,0.95,True,True,True,True,True,True,True
+How is employee performance trending?,no,unsupported,unsupported,,,all_time,0.95,True,True,True,True,True,True,True
+Which ads caused the most conversions?,no,unsupported,unsupported,,,all_time,0.95,True,True,True,True,True,True,True
+What is our warehouse labor cost?,no,unsupported,unsupported,,,all_time,0.95,True,True,True,True,True,True,True
+What is customer lifetime value by segment?,no,unsupported,unsupported,,,all_time,0.95,True,True,True,True,True,True,True
+What are real-time sales today?,no,unsupported,unsupported,,,all_time,0.95,True,True,True,True,True,True,True
+How does our pricing compare to competitors?,no,unsupported,unsupported,,,all_time,0.95,True,True,True,True,True,True,True
+Did weather impact sales?,no,unsupported,unsupported,,,all_time,0.95,True,True,True,True,True,True,True
+Which suppliers perform best?,no,unsupported,unsupported,,,all_time,0.95,True,True,True,True,True,True,True
+What is our market share?,no,unsupported,unsupported,,,all_time,0.95,True,True,True,True,True,True,True
+Show customer complaints by month,no,unsupported,unsupported,,,all_time,0.95,True,True,True,True,True,True,True
+Show me product images for top sellers,no,unsupported,unsupported,,,all_time,0.95,True,True,True,True,True,True,True

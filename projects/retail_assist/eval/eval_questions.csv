@@ -1,0 +1,51 @@
+question,expected_intent,expected_metrics,expected_dimensions,expected_time_window,should_answer,expected_failure_reason
+What was revenue by month?,revenue_trend,revenue,month,all_time,yes,
+Show sales trend over time,revenue_trend,revenue,month,all_time,yes,
+How did revenue trend across the year?,revenue_trend,revenue,month,all_time,yes,
+Show monthly revenue,revenue_trend,revenue,month,all_time,yes,
+Compare revenue this month vs prior month,revenue_trend,revenue,month,mom,yes,
+What are the top products by revenue?,top_products,revenue,product,all_time,yes,
+Which products sold the most units?,top_products,units,product,all_time,yes,
+Show top products by gross margin,top_products,gross_margin,product,all_time,yes,
+What were our best selling items?,top_products,revenue,product,all_time,yes,
+Top 10 products by orders,top_products,orders,product,all_time,yes,
+Which categories drove revenue?,top_categories,revenue,product_category,all_time,yes,
+What categories had the highest margin rate?,top_categories,margin_rate,product_category,all_time,yes,
+Show category performance,top_categories,revenue,product_category,all_time,yes,
+Which product categories sold the most units?,top_categories,units,product_category,all_time,yes,
+Show revenue by category,top_categories,revenue,product_category,all_time,yes,
+What is AOV?,aov_summary,aov,,all_time,yes,
+What is the average order value?,aov_summary,aov,,all_time,yes,
+Show AOV by country,country_order_volume,aov,country,all_time,yes,
+Compare AOV by channel,channel_summary,aov,channel,all_time,yes,
+Which customer segment has the highest AOV?,customer_segment_summary,aov,customer_segment,all_time,yes,
+Which countries had the most orders?,country_order_volume,orders,country,all_time,yes,
+Show revenue by country,country_order_volume,revenue,country,all_time,yes,
+Which country had the highest units?,country_order_volume,units,country,all_time,yes,
+Show orders by country,country_order_volume,orders,country,all_time,yes,
+Revenue by geography,country_order_volume,revenue,country,all_time,yes,
+Compare promo vs non-promo sales,promo_comparison,revenue,promo_flag,all_time,yes,
+Did promo orders have higher AOV?,promo_comparison,aov,promo_flag,all_time,yes,
+Show margin rate by promo flag,promo_comparison,margin_rate,promo_flag,all_time,yes,
+How many orders were promotional?,promo_comparison,orders,promo_flag,all_time,yes,
+Promo vs non-promo revenue comparison,promo_comparison,revenue,promo_flag,all_time,yes,
+Which customer segments drive revenue?,customer_segment_summary,revenue,customer_segment,all_time,yes,
+Show AOV by customer segment,customer_segment_summary,aov,customer_segment,all_time,yes,
+Show revenue by channel,channel_summary,revenue,channel,all_time,yes,
+Which channel had the highest AOV?,channel_summary,aov,channel,all_time,yes,
+What is the fulfillment mix?,fulfillment_mix,revenue,fulfillment_type,all_time,yes,
+Forecast profit for next quarter,unsupported,,,all_time,no,forecasting or prediction
+Why did customers churn?,unsupported,,,all_time,no,causality or attribution
+Predict the next purchase for each customer,unsupported,,,all_time,no,forecasting or prediction
+What is store-level inventory right now?,unsupported,,,all_time,no,inventory or stock levels
+How is employee performance trending?,unsupported,,,all_time,no,employee or supplier performance
+Which ads caused the most conversions?,unsupported,,,all_time,no,causality or attribution
+What is our warehouse labor cost?,unsupported,,,all_time,no,inventory or stock levels
+What is customer lifetime value by segment?,unsupported,,,all_time,no,customer lifetime value
+What are real-time sales today?,unsupported,,,all_time,no,real-time data
+How does our pricing compare to competitors?,unsupported,,,all_time,no,competitor or market data
+Did weather impact sales?,unsupported,,,all_time,no,weather or external factors
+Which suppliers perform best?,unsupported,,,all_time,no,employee or supplier performance
+What is our market share?,unsupported,,,all_time,no,competitor or market data
+Show customer complaints by month,unsupported,,,all_time,no,customer complaints or reviews
+Show me product images for top sellers,unsupported,,,all_time,no,product images

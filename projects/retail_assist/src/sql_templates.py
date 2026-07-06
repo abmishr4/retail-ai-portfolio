@@ -34,10 +34,10 @@ LAST_COMPLETE_MONTH = "2011-11"
 PRIOR_MONTH = "2011-10"
 
 TIME_WINDOWS = {
-    "all_time": ("All available data (Dec 2010 – Dec 9, 2011)", ""),
-    "last_month": (f"Last complete month in data ({LAST_COMPLETE_MONTH})",
+    "all_time": ("all available data (Dec 2010 – Dec 9, 2011)", ""),
+    "last_month": (f"the last complete month in data ({LAST_COMPLETE_MONTH})",
                    f"WHERE month = '{LAST_COMPLETE_MONTH}'"),
-    "mom": (f"Month-over-month ({PRIOR_MONTH} vs {LAST_COMPLETE_MONTH})",
+    "mom": (f"month-over-month ({PRIOR_MONTH} vs {LAST_COMPLETE_MONTH})",
             f"WHERE month IN ('{PRIOR_MONTH}', '{LAST_COMPLETE_MONTH}')"),
 }
 

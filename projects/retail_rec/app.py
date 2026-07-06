@@ -81,6 +81,23 @@ with st.sidebar:
 if page == "🛒 Shop & Recommendations":
     st.subheader("Find a product")
 
+    # Trending products — one-click entry points so visitors don't face a
+    # blank search box over an unfamiliar 3,922-product catalog.
+    # "Trending" = most-ordered in-stock products (deterministic, honest).
+    trending = (lookup[lookup["synthetic_in_stock"]]
+                .nlargest(8, "order_count"))
+    st.caption("🔥 Trending products — click to see what customers also bought")
+    rows = [trending.iloc[:4], trending.iloc[4:]]
+    for chunk in rows:
+        cols = st.columns(4)
+        for col, p in zip(cols, chunk.itertuples()):
+            label = p.description.title()
+            label = label if len(label) <= 32 else label[:29] + "..."
+            if col.button(label, key=f"trend_{p.stock_code}",
+                          help=f"{p.description} · {int(p.order_count):,} orders"):
+                st.session_state.selected_code = p.stock_code
+                st.session_state.search_results = None
+
     with st.form("search_form"):
         c1, c2 = st.columns([5, 1])
         query = c1.text_input("Search by name or stock code",

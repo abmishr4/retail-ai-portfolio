@@ -209,6 +209,13 @@ skipped as wholesale noise). Three statistics per directional pair:
         [f"Confidence below {b['low_confidence_floor']:.2f}",
          f"Penalized −{b['low_confidence_penalty']:.2f}",
          "thin conditional probability ranks lower"],
+        ["Near-duplicate recommendations",
+         f"Diversified (MMR, weight {cfg.get('diversity', {}).get('mmr_weight', 0):.2f})",
+         "each pick is penalized by its name-token overlap with items "
+         "already selected — dampens 'five cakestands' without killing "
+         "legitimate colorway variants. Display order follows the "
+         "diversified selection, so scores are intentionally "
+         "non-monotonic."],
     ], columns=["Rule", "Effect", "Detail"])
     st.dataframe(rules, width='stretch', hide_index=True)
 

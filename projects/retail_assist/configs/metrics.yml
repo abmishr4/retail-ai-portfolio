@@ -1,0 +1,106 @@
+# Retail Assist — governed semantic layer configuration.
+# This file is the single source of truth for what the app is ALLOWED to
+# compute. Anything not defined here is unsupported by design.
+
+metrics:
+  revenue:
+    expression: "SUM(revenue)"
+    aggregation_rule: "sum"
+    format: "currency"
+    description: "Total sales revenue (quantity x unit price), cancelled invoices excluded."
+
+  orders:
+    expression: "COUNT(DISTINCT invoice_no)"
+    aggregation_rule: "count_distinct"
+    format: "integer"
+    description: "Distinct customer orders (invoices)."
+
+  units:
+    expression: "SUM(quantity)"
+    aggregation_rule: "sum"
+    format: "integer"
+    description: "Total units sold."
+
+  aov:
+    expression: "SUM(revenue) / COUNT(DISTINCT invoice_no)"
+    aggregation_rule: "weighted_ratio"
+    format: "currency"
+    description: "Average order value. Always computed as total revenue over distinct orders. Must never be averaged across groups."
+
+  gross_margin:
+    expression: "SUM(gross_margin)"
+    aggregation_rule: "sum"
+    format: "currency"
+    description: "Total gross margin. Uses SYNTHETIC demo margin rates by category."
+
+  margin_rate:
+    expression: "SUM(gross_margin) / SUM(revenue)"
+    aggregation_rule: "weighted_ratio"
+    format: "percent"
+    description: "Gross margin rate. Weighted ratio — must never be averaged across groups. Synthetic demo economics."
+
+dimensions:
+  month:
+    column: "month"
+    kind: "time"
+    description: "Calendar month (YYYY-MM)."
+  invoice_date:
+    column: "invoice_date"
+    kind: "time"
+    description: "Order timestamp."
+  product:
+    column: "description"
+    kind: "categorical"
+    description: "Product (by description)."
+  stock_code:
+    column: "stock_code"
+    kind: "categorical"
+    description: "Product SKU code."
+  product_category:
+    column: "product_category"
+    kind: "categorical"
+    description: "Product category. SYNTHETIC keyword-based demo field."
+  country:
+    column: "country"
+    kind: "categorical"
+    description: "Customer country."
+  customer_segment:
+    column: "customer_segment"
+    kind: "categorical"
+    description: "RFM-style segment. SYNTHETIC demo field."
+  channel:
+    column: "channel"
+    kind: "categorical"
+    description: "Order channel. SYNTHETIC demo field."
+  promo_flag:
+    column: "promo_flag"
+    kind: "categorical"
+    description: "Promo vs non-promo order. SYNTHETIC demo field."
+  fulfillment_type:
+    column: "fulfillment_type"
+    kind: "categorical"
+    description: "Fulfillment type. SYNTHETIC demo field."
+
+# Domains Retail Assist explicitly does NOT cover. The router uses these to
+# explain refusals honestly instead of guessing.
+unsupported_domains:
+  - forecasting and predictions
+  - causality and attribution (why something happened)
+  - real-time or current data
+  - inventory and stock levels
+  - competitor data and market share
+  - customer complaints and reviews
+  - employee or supplier performance
+  - customer lifetime value
+  - weather and external factors
+  - product images
+
+data:
+  fact_table: "fact_order_lines.parquet"
+  date_min: "2010-12-01"
+  date_max: "2011-12-09"
+  disclosure: >
+    This demo uses the UCI Online Retail Dataset (public) for transaction
+    data. Category, margin, channel, promotion, customer segment, and
+    fulfillment fields are synthetic enrichments. No employer data, employer
+    code, or confidential business logic is included.

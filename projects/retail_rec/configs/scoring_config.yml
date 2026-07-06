@@ -14,6 +14,13 @@ business_rules:
   out_of_stock_penalty: 1.00     # 1.00 = remove entirely (hard filter)
   ineligible_penalty: 1.00       # 1.00 = remove entirely (hard filter)
 
+diversity:
+  # MMR-style diversification: each pick is penalized by its description
+  # token overlap (Jaccard) with items already selected. Dampens
+  # near-duplicate recommendations (five cakestands) without killing
+  # legitimate variants. 0 disables.
+  mmr_weight: 0.30
+
 limits:
   intermediate_top_k: 100    # candidates kept per anchor before reranking
   final_top_k: 20            # recommendations served per anchor

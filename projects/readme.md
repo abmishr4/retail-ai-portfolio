@@ -1,5 +1,7 @@
 # Retail AI Portfolio — Abhishek Mishra
 
+**Portfolio - https://app.notion.com/p/Abhishek-Mishra-Applied-ML-Architect-AI-Leader-33fd0373ea9080f791f2ee391be57cce**
+
 Two compact, working, public demos of how I think about production AI/data
 systems — governed scope, honest limits, evaluation discipline, and
 business-facing design. Both are public-data analogues of production

@@ -9,8 +9,8 @@ data.
 
 | App | Live demo | What it demonstrates |
 |---|---|---|
-| **🛒 Retail Assist** | _ADD ASSIST URL_ | Governed natural-language analytics: NL question → validated routing → static SQL templates → correct metric logic (AOV done right) → visible query plan → safe refusal of unsupported questions → 50-question eval benchmark → optional access-gated LLM mode that words answers but never touches the math |
-| **🛍️ Retail Rec** | _ADD REC URL_ | "Customers Also Bought" recommendations: co-purchase mining (confidence / support / lift) → YAML-configured scoring → a visibly separate business-rules layer (inventory, eligibility, category coherence, MMR diversity) → labeled fallbacks for cold-start coverage → honest reason codes on every recommendation |
+| **🛒 Retail Assist** | _https://retail-ai-portfolio-ab.streamlit.app/_ | Governed natural-language analytics: NL question → validated routing → static SQL templates → correct metric logic (AOV done right) → visible query plan → safe refusal of unsupported questions → 50-question eval benchmark → optional access-gated LLM mode that words answers but never touches the math |
+| **🛍️ Retail Rec** | _https://retail-ai-portfolio-recs-ab.streamlit.app/_ | "Customers Also Bought" recommendations: co-purchase mining (confidence / support / lift) → YAML-configured scoring → a visibly separate business-rules layer (inventory, eligibility, category coherence, MMR diversity) → labeled fallbacks for cold-start coverage → honest reason codes on every recommendation |
 
 ## Shared design philosophy
 
@@ -60,4 +60,4 @@ repo; committed artifacts mean a fresh clone runs with just
 
 ## Contact
 
-Abhishek Mishra · abmishra@umich.edu · _ADD LINKEDIN URL_
+Abhishek Mishra · abmishra@umich.edu · _https://www.linkedin.com/in/abmishr4/_

@@ -4,6 +4,7 @@
   "out_of_stock_removed": 24832,
   "same_category_boosted": 72781,
   "low_confidence_penalized": 30301,
+  "mmr_weight": 0.3,
   "fallback_rows_added": 5901,
   "anchors_covered": 3922,
   "total_rows": 78440,

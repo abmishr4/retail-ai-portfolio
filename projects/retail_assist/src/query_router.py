@@ -110,10 +110,12 @@ def route_question(sem: SemanticLayer, question: str) -> dict:
     # ------------------------------------------------------------------
     # 4. Pick the intent family (first match wins, most specific first)
     # ------------------------------------------------------------------
-    if "product" in dims and (wants_top or metrics):
-        intent, dims_out = "top_products", ["product"]
-    elif "product_category" in dims:
+    # product_category is checked BEFORE product: "product categories"
+    # matches both signals, and category is the breakdown being asked for.
+    if "product_category" in dims:
         intent, dims_out = "top_categories", ["product_category"]
+    elif "product" in dims and (wants_top or metrics):
+        intent, dims_out = "top_products", ["product"]
     elif "aov" in metrics and not dims:
         intent, dims_out = "aov_summary", []
     elif "country" in dims:

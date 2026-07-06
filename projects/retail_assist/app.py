@@ -30,6 +30,13 @@ CONTACT_EMAIL = "abmishra@umich.edu"
 MAX_LLM_CALLS = 5   # courtesy limit per session (NOT a security control —
                     # the access key is the real gate)
 
+EXAMPLES = [
+    "What was revenue by month?",
+    "Which categories drove revenue?",
+    "Compare promo vs non-promo sales",
+    "Forecast profit for next quarter",   # refused by design — the governance demo
+]
+
 st.set_page_config(page_title="Retail Assist", page_icon="🛒", layout="wide")
 
 
@@ -89,21 +96,41 @@ def answer_question(sem, question, llm_active, api_key):
         llm_answer = word_answer_llm(sem, question, plan, df, det_answer, api_key)
         st.session_state.llm_calls += 1
 
-    return {"route": route, "routed_by": routed_by, "plan": plan,
-            "df": df, "det_answer": det_answer, "llm_answer": llm_answer}
+    return {"question": question, "route": route, "routed_by": routed_by,
+            "plan": plan, "df": df, "det_answer": det_answer,
+            "llm_answer": llm_answer}
+
+
+def run_ask(sem, question, llm_active, api_key):
+    with st.spinner("Answering..."):
+        st.session_state.last_result = answer_question(
+            sem, question, llm_active, api_key)
 
 
 # ---------------------------------------------------------------------------
-# Sidebar — mode, access gate, session status
+# Session state
 # ---------------------------------------------------------------------------
 sem = get_semantic_layer()
 if "llm_calls" not in st.session_state:
     st.session_state.llm_calls = 0
+if "last_result" not in st.session_state:
+    st.session_state.last_result = None
 
+# ---------------------------------------------------------------------------
+# Sidebar — navigation, mode, access gate
+# ---------------------------------------------------------------------------
 with st.sidebar:
-    st.title("Retail Assist")
+    st.title("🛒 Retail Assist")
     st.caption("Governed natural-language retail analytics — public demo")
 
+    page = st.radio(
+        "Navigate",
+        ["💬 Ask Retail Assist", "❓ Supported Questions", "📖 Semantic Layer",
+         "✅ Evaluation Results", "🏗️ Architecture", "⚠️ Deliberate Limits"],
+        label_visibility="collapsed",
+    )
+
+    st.divider()
     use_llm = st.checkbox("Use LLM-assisted governed mode")
     pin_input = st.text_input("Demo access key", type="password",
                               disabled=not use_llm)
@@ -117,8 +144,9 @@ with st.sidebar:
 
     if llm_active:
         st.success("Mode: LLM-assisted governed")
-        st.caption(f"LLM calls this session: {st.session_state.llm_calls} / {MAX_LLM_CALLS}. "
-                   "At the limit, the app falls back to deterministic mode.")
+        st.caption(f"LLM calls this session: {st.session_state.llm_calls} / "
+                   f"{MAX_LLM_CALLS}. At the limit, the app falls back to "
+                   "deterministic mode.")
     else:
         st.info("Mode: Deterministic governed (default)")
         if use_llm:
@@ -134,35 +162,49 @@ with st.sidebar:
                "fields are synthetic demo enrichments.")
 
 # ---------------------------------------------------------------------------
-# Tabs
+# Page: Ask Retail Assist
 # ---------------------------------------------------------------------------
-tab_ask, tab_supported, tab_semantic, tab_eval, tab_arch, tab_limits = st.tabs(
-    ["Ask Retail Assist", "Supported Questions", "Semantic Layer",
-     "Evaluation Results", "Architecture", "Deliberate Limits"])
-
-# ------------------------------ Ask ---------------------------------------
-with tab_ask:
+if page == "💬 Ask Retail Assist":
     st.subheader("Ask a business question")
-    st.caption("Try: What was revenue by month? · Top products by gross margin · "
-               "AOV by country · Compare promo vs non-promo sales · "
-               "Forecast profit for next quarter (this one gets refused — by design)")
 
-    question = st.text_input("Your question", key="question_box",
-                             placeholder="e.g., Which categories drove revenue?")
+    # Click-to-ask examples (recruiters shouldn't have to type)
+    cols = st.columns(len(EXAMPLES))
+    for col, ex in zip(cols, EXAMPLES):
+        label = ex if ex != EXAMPLES[-1] else f"{ex} 🚫"
+        if col.button(label, key=f"ex_{ex}", help="Click to ask"):
+            run_ask(sem, ex, llm_active, api_key)
 
-    if st.button("Ask", type="primary") and question.strip():
-        result = answer_question(sem, question.strip(), llm_active, api_key)
+    with st.form("ask_form", clear_on_submit=False):
+        question = st.text_input(
+            "Your question",
+            placeholder="e.g., Which customer segments drive revenue?")
+        submitted = st.form_submit_button("Ask", type="primary")
+    if submitted and question.strip():
+        run_ask(sem, question.strip(), llm_active, api_key)
+
+    result = st.session_state.last_result
+
+    if result is None:
+        st.info(
+            "👋 **Welcome to Retail Assist.** Ask any business question about "
+            "this retail dataset — revenue, orders, units, AOV, margin — by "
+            "month, product, category, country, segment, channel, promo, or "
+            "fulfillment. Click an example above or type your own. "
+            "Questions outside the governed scope are refused honestly, "
+            "never guessed — try the last example to see it.")
+    else:
         route, plan, df = result["route"], result["plan"], result["df"]
+        st.caption(f'You asked: "{result["question"]}"')
 
-        # Answer(s)
+        # ----- Answer -----
         if result["llm_answer"]:
             c1, c2 = st.columns(2)
             with c1:
                 st.markdown("**Deterministic answer** (template-worded)")
-                st.write(result["det_answer"])
+                st.success(result["det_answer"])
             with c2:
                 st.markdown(f"**LLM-worded answer** ({GEMINI_MODEL})")
-                st.write(result["llm_answer"])
+                st.success(result["llm_answer"])
             st.caption("Same query plan, same numbers — the LLM changes the "
                        "wording, never the math.")
         elif route["intent"] == "unsupported":
@@ -170,35 +212,51 @@ with tab_ask:
         else:
             st.success(result["det_answer"])
 
-        # Query plan — always visible, the transparency centerpiece
-        with st.expander("Query plan (how this answer was produced)",
-                         expanded=route["intent"] not in ("unsupported",
-                                                          "supported_questions")):
-            meta = {
-                "Original question": question.strip(),
-                "Routed by": result["routed_by"],
-                "Detected intent": route["intent"],
-                "Confidence": route["confidence"],
-                "Metrics used": ", ".join(route["metrics"]) or "—",
-                "Dimensions used": ", ".join(route["dimensions"]) or "—",
-                "Time window": plan["time_window"] if plan else "—",
-                "SQL template": plan["template_name"] if plan else "— (no SQL executed)",
-            }
-            if route["unsupported_reason"]:
-                meta["Refusal reason"] = route["unsupported_reason"]
-            st.table(pd.DataFrame(meta.items(), columns=["Field", "Value"]))
-            if plan:
-                st.code(plan["sql"], language="sql")
+        # ----- Details, demoted to small tabs -----
+        if route["intent"] != "supported_questions":
+            t_chart, t_plan, t_data = st.tabs(
+                ["📊 Chart", "🔍 Query plan", "📋 Data"])
 
-        # Chart + data
-        if df is not None and len(df) > 0:
-            fig = make_chart(plan, df)
-            if fig:
-                st.plotly_chart(fig, width='stretch')
-            st.dataframe(df, width='stretch', hide_index=True)
+            with t_chart:
+                fig = make_chart(plan, df) if plan else None
+                if fig:
+                    st.plotly_chart(fig, width='stretch')
+                elif df is not None and len(df) > 0:
+                    st.caption("Single-value result — no chart needed.")
+                else:
+                    st.caption("No data to chart for this question.")
 
-# ------------------------- Supported Questions -----------------------------
-with tab_supported:
+            with t_plan:
+                meta = {
+                    "Original question": result["question"],
+                    "Routed by": result["routed_by"],
+                    "Detected intent": route["intent"],
+                    "Confidence": route["confidence"],
+                    "Metrics used": ", ".join(route["metrics"]) or "—",
+                    "Dimensions used": ", ".join(route["dimensions"]) or "—",
+                    "Time window": plan["time_window"] if plan else "—",
+                    "SQL template": plan["template_name"] if plan
+                                    else "— (no SQL executed)",
+                }
+                if route["unsupported_reason"]:
+                    meta["Refusal reason"] = route["unsupported_reason"]
+                st.table(pd.DataFrame(meta.items(), columns=["Field", "Value"]))
+                if plan:
+                    st.code(plan["sql"], language="sql")
+                else:
+                    st.caption("Refused questions never reach SQL — that is "
+                               "the governance working.")
+
+            with t_data:
+                if df is not None and len(df) > 0:
+                    st.dataframe(df, width='stretch', hide_index=True)
+                else:
+                    st.caption("No rows — nothing was queried.")
+
+# ---------------------------------------------------------------------------
+# Page: Supported Questions
+# ---------------------------------------------------------------------------
+elif page == "❓ Supported Questions":
     st.subheader("Supported question families")
     st.write("Retail Assist deliberately supports a small set of question "
              "families and answers them correctly every time — instead of "
@@ -213,8 +271,10 @@ with tab_supported:
     except Exception:
         st.info("Eval question set not found.")
 
-# ---------------------------- Semantic Layer -------------------------------
-with tab_semantic:
+# ---------------------------------------------------------------------------
+# Page: Semantic Layer
+# ---------------------------------------------------------------------------
+elif page == "📖 Semantic Layer":
     st.subheader("Governed semantic layer")
     st.write("Every metric the app can compute is defined once, here. "
              "AOV and margin rate are weighted ratios — computed at query "
@@ -224,8 +284,10 @@ with tab_semantic:
     st.markdown("**Explicitly unsupported domains** (refused, not guessed):")
     st.markdown("\n".join(f"- {d}" for d in sem.unsupported_domains))
 
-# --------------------------- Evaluation Results ----------------------------
-with tab_eval:
+# ---------------------------------------------------------------------------
+# Page: Evaluation Results
+# ---------------------------------------------------------------------------
+elif page == "✅ Evaluation Results":
     st.subheader("Evaluation results")
     st.write("Routing is scored against a labeled 50-question benchmark "
              "(35 supported across 7 families, 15 unsupported) — the same "
@@ -245,8 +307,10 @@ with tab_eval:
     except Exception:
         st.info("Run src/evaluator.py to generate eval_results.csv.")
 
-# ------------------------------ Architecture -------------------------------
-with tab_arch:
+# ---------------------------------------------------------------------------
+# Page: Architecture
+# ---------------------------------------------------------------------------
+elif page == "🏗️ Architecture":
     st.subheader("Architecture")
     st.markdown(f"""
 This is a deliberately scaled-down public analogue. The production system I
@@ -273,8 +337,10 @@ adds context. Any error — bad key, quota, retired model — falls back to
 deterministic mode. The LLM is a language layer, not a dependency.
 """)
 
-# ---------------------------- Deliberate Limits ----------------------------
-with tab_limits:
+# ---------------------------------------------------------------------------
+# Page: Deliberate Limits
+# ---------------------------------------------------------------------------
+elif page == "⚠️ Deliberate Limits":
     st.warning(sem.data_info["disclosure"])
     st.subheader("Deliberate limits and non-goals")
     st.write("Strong systems have explicit boundaries. These are design "

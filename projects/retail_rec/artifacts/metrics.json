@@ -1,0 +1,17 @@
+{
+  "catalog_products": 3922,
+  "products_with_at_least_1_rec": 3922,
+  "products_with_full_20_recs": 3922,
+  "avg_direct_recs_per_product": 18.5,
+  "fallback_rate_rows": 0.0752,
+  "products_using_any_fallback": 353,
+  "avg_lift_direct": 262.86,
+  "median_lift_direct": 24.39,
+  "avg_confidence_direct": 0.2284,
+  "category_diversity_avg_unique_categories_per_anchor": 3.53,
+  "out_of_stock_removed": 24832,
+  "ineligible_removed": 11820,
+  "low_confidence_penalized": 30301,
+  "same_category_boosted": 72781,
+  "note": "Offline metrics only. No online lift, A/B-test, or revenue claims are made or supported by this demo."
+}

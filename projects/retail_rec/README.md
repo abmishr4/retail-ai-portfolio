@@ -101,7 +101,3 @@ enterprise scale · synthetic inventory/eligibility/category fields,
 disclosed in-app · keyword category labels occasionally misfire (accepted
 demo artifact). The Deliberate Limits page states all of this to every
 visitor.
-
-## Screenshots
-
-_add screenshots from assets/screenshots/ after deployment_

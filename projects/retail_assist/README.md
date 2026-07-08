@@ -14,9 +14,8 @@ refusal when the question is outside the governed scope.
 
 This is a deliberately scaled-down public analogue of a production
 natural-language decision platform I led professionally. The production
-system handled far broader scope; here the goal is a small supported set
-answered correctly every time. Hiring managers can't see proprietary
-systems — this shows the same design philosophy on public data.
+system handled far broader scope. Since I could not share proprietary data and 
+systems — this version shows the same design philosophy on public data.
 
 ## What it demonstrates
 

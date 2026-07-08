@@ -3,9 +3,8 @@
 Two compact, working, public demos of how I think about production AI/data
 systems — governed scope, honest limits, evaluation discipline, and
 business-facing design. Both are public-data analogues of production
-platforms I have led professionally in enterprise retail; hiring managers
-can't see proprietary systems, so these show the same thinking on public
-data.
+platforms I have led professionally in enterprise retail; Since I could not share proprietary data and 
+systems — this version shows the same design philosophy on public data.
 
 | App | Live demo | What it demonstrates |
 |---|---|---|

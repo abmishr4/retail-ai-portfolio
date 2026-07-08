@@ -102,7 +102,3 @@ Open SQL generation, free-text metric computation, forecasting, causal
 claims, and real-time data are **out of scope by design** — the point is a
 narrow, correct, honest system. The Deliberate Limits tab in the app states
 this to every visitor.
-
-## Screenshots
-
-_add screenshots from assets/screenshots/ after deployment_

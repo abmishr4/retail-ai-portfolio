@@ -63,4 +63,3 @@ and the `streamlit run` command.
 
 Abhishek Mishra · abmishra@umich.edu ·
 [LinkedIn](https://www.linkedin.com/in/abmishr4/) ·
-[Portfolio](https://bumpy-accordion-b01.notion.site)

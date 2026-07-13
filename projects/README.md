@@ -9,9 +9,6 @@ production platforms I have led professionally in enterprise retail. Because I
 cannot share proprietary data or systems, these reproduce the same design
 philosophy on public data.
 
-**📎 Full portfolio & technical case studies** (incl. forecasting and logistics
-platforms): https://bumpy-accordion-b01.notion.site
-
 | App | Live demo | What it demonstrates |
 |---|---|---|
 | **🛒 Retail Assist** | https://retail-ai-portfolio-ab.streamlit.app/ | Governed natural-language analytics: NL question → validated routing → static SQL templates → correct metric logic (AOV done right) → visible query plan → safe refusal of unsupported questions → 50-question eval benchmark → optional access-gated LLM mode that words answers but never touches the math |

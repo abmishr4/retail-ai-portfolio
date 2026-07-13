@@ -30,6 +30,14 @@ CONTACT_EMAIL = "abmishra@umich.edu"
 MAX_LLM_CALLS = 5   # courtesy limit per session (NOT a security control —
                     # the access key is the real gate)
 
+# Accent palette reused by the CSS and the Plotly charts so the whole app
+# reads as one system.
+ACCENT = "#6366F1"
+CHART_COLORWAY = ["#6366F1", "#8B5CF6", "#EC4899", "#14B8A6", "#F59E0B"]
+
+USER_AVATAR = "🧑‍💼"
+ASSISTANT_AVATAR = "🛒"
+
 EXAMPLES = [
     "What was revenue by month?",
     "Which categories drove revenue?",
@@ -38,6 +46,45 @@ EXAMPLES = [
 ]
 
 st.set_page_config(page_title="Retail Assist", page_icon="🛒", layout="wide")
+
+
+# ---------------------------------------------------------------------------
+# Styling — a light CSS pass so the app reads as a 2026 assistant, not a
+# 2015 form. Theme-neutral (rgba / inherit) so it adapts to light and dark.
+# ---------------------------------------------------------------------------
+def inject_css() -> None:
+    st.markdown(
+        """
+        <style>
+          .block-container {padding-top: 2.2rem; max-width: 1080px;}
+
+          /* routing-transparency pill chips under each answer */
+          .ra-chips {display:flex; flex-wrap:wrap; gap:.4rem;
+                     margin:.55rem 0 .1rem;}
+          .ra-chip {font-size:.72rem; font-weight:500; line-height:1.2;
+                    padding:.2rem .62rem; border-radius:999px; color:inherit;
+                    background:rgba(99,102,241,.12);
+                    border:1px solid rgba(99,102,241,.28); white-space:nowrap;}
+          .ra-chip b {font-weight:700;}
+          .ra-chip.refuse {background:rgba(239,68,68,.12);
+                           border-color:rgba(239,68,68,.30);}
+
+          /* rounded, softer buttons + suggestion cards */
+          .stButton>button {border-radius:12px;
+                            border:1px solid rgba(128,128,128,.28);
+                            font-weight:500; padding:.5rem .8rem;}
+          .stButton>button:hover {border-color:rgba(99,102,241,.6);}
+
+          /* the chat input bar */
+          div[data-testid="stChatInput"] {border-radius:14px;}
+
+          /* tighten the welcome hero */
+          .ra-hero-title {font-size:1.55rem; font-weight:700; margin:.2rem 0 .1rem;}
+          .ra-hero-sub {opacity:.75; font-size:.95rem; margin-bottom:.4rem;}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -70,8 +117,12 @@ def make_chart(plan, df):
     else:
         label_col = plot_df.columns[0]
         fig = px.bar(plot_df.head(15), x=label_col, y=metric)
-    fig.update_layout(height=340, margin=dict(l=10, r=10, t=30, b=10),
-                      yaxis_title=metric.replace("_", " "))
+    fig.update_layout(
+        height=340, margin=dict(l=10, r=10, t=30, b=10),
+        yaxis_title=metric.replace("_", " "),
+        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(family="sans-serif"), colorway=CHART_COLORWAY)
+    fig.update_traces(marker_color=ACCENT)
     return fig
 
 
@@ -101,20 +152,101 @@ def answer_question(sem, question, llm_active, api_key):
             "llm_answer": llm_answer}
 
 
-def run_ask(sem, question, llm_active, api_key):
-    with st.spinner("Answering..."):
-        st.session_state.last_result = answer_question(
-            sem, question, llm_active, api_key)
+# ---------------------------------------------------------------------------
+# Rendering — one assistant turn (answer + routing chips + collapsible detail)
+# ---------------------------------------------------------------------------
+def _chips_html(result) -> str:
+    route, plan = result["route"], result["plan"]
+    refuse = route["intent"] == "unsupported"
+    items = [("routed by", result["routed_by"]),
+             ("intent", route["intent"]),
+             ("confidence", f"{route['confidence']:.2f}")]
+    if plan:
+        items.append(("time", plan["time_window"]))
+    cls = "ra-chip refuse" if refuse else "ra-chip"
+    spans = "".join(
+        f"<span class='{cls}'>{k} · <b>{v}</b></span>" for k, v in items)
+    return f"<div class='ra-chips'>{spans}</div>"
+
+
+def _render_details(result):
+    """The collapsible query-plan / chart / data panel (transparency)."""
+    route, plan, df = result["route"], result["plan"], result["df"]
+    with st.expander("🔍 Query plan, chart & data"):
+        if result["llm_answer"]:
+            st.caption("Deterministic (template) answer, for comparison — "
+                       "same numbers, template wording:")
+            st.info(result["det_answer"])
+
+        t_chart, t_plan, t_data = st.tabs(
+            ["📊 Chart", "🧭 Query plan", "📋 Data"])
+
+        with t_chart:
+            fig = make_chart(plan, df) if plan else None
+            if fig:
+                st.plotly_chart(fig, width='stretch')
+            elif df is not None and len(df) > 0:
+                st.caption("Single-value result — no chart needed.")
+            else:
+                st.caption("No data to chart for this question.")
+
+        with t_plan:
+            meta = {
+                "Original question": result["question"],
+                "Routed by": result["routed_by"],
+                "Detected intent": route["intent"],
+                "Confidence": f"{route['confidence']:.2f}",
+                "Metrics used": ", ".join(route["metrics"]) or "—",
+                "Dimensions used": ", ".join(route["dimensions"]) or "—",
+                "Time window": plan["time_window"] if plan else "—",
+                "SQL template": plan["template_name"] if plan
+                                else "— (no SQL executed)",
+            }
+            if route["unsupported_reason"]:
+                meta["Refusal reason"] = route["unsupported_reason"]
+            st.table(pd.DataFrame(meta.items(), columns=["Field", "Value"]))
+            if plan:
+                st.code(plan["sql"], language="sql")
+            else:
+                st.caption("Refused questions never reach SQL — that is "
+                           "the governance working.")
+
+        with t_data:
+            if df is not None and len(df) > 0:
+                st.dataframe(df, width='stretch', hide_index=True)
+            else:
+                st.caption("No rows — nothing was queried.")
+
+
+def render_assistant(result):
+    """Render a full assistant turn inside a chat bubble."""
+    route, plan = result["route"], result["plan"]
+
+    # ----- Answer -----
+    if result["llm_answer"]:
+        st.markdown(result["llm_answer"])
+    elif route["intent"] == "unsupported":
+        st.markdown(f"🚫 **Outside the governed scope.**\n\n{result['det_answer']}")
+    else:
+        st.markdown(result["det_answer"])
+
+    # ----- Routing transparency + details -----
+    if route["intent"] == "supported_questions":
+        return
+    st.markdown(_chips_html(result), unsafe_allow_html=True)
+    if plan is not None:
+        _render_details(result)
 
 
 # ---------------------------------------------------------------------------
 # Session state
 # ---------------------------------------------------------------------------
+inject_css()
 sem = get_semantic_layer()
 if "llm_calls" not in st.session_state:
     st.session_state.llm_calls = 0
-if "last_result" not in st.session_state:
-    st.session_state.last_result = None
+if "messages" not in st.session_state:
+    st.session_state.messages = []          # [{role, content} | {role, result}]
 
 # ---------------------------------------------------------------------------
 # Sidebar — navigation, mode, access gate
@@ -156,102 +288,66 @@ with st.sidebar:
                 "deterministic mode — same numbers, same governance; the key "
                 "only unlocks LLM-worded answers.")
 
+    if st.session_state.messages:
+        st.divider()
+        if st.button("🗑️ Clear conversation", width='stretch'):
+            st.session_state.messages = []
+            st.rerun()
+
     st.divider()
     st.caption("Data: UCI Online Retail (public), Dec 2010 – Dec 9 2011. "
                "Category, margin, channel, promo, segment, and fulfillment "
                "fields are synthetic demo enrichments.")
 
 # ---------------------------------------------------------------------------
-# Page: Ask Retail Assist
+# Page: Ask Retail Assist  (conversational)
 # ---------------------------------------------------------------------------
 if page == "💬 Ask Retail Assist":
-    st.subheader("Ask a business question")
+    # Resolve any pending question (from a suggestion chip) or typed input.
+    typed = st.chat_input("Ask about revenue, orders, units, AOV, or margin…")
+    pending = st.session_state.pop("pending_question", None)
+    question = (typed or pending)
+    question = question.strip() if question else None
 
-    # Click-to-ask examples (recruiters shouldn't have to type)
-    cols = st.columns(len(EXAMPLES))
-    for col, ex in zip(cols, EXAMPLES):
-        label = ex if ex != EXAMPLES[-1] else f"{ex} 🚫"
-        if col.button(label, key=f"ex_{ex}", help="Click to ask"):
-            run_ask(sem, ex, llm_active, api_key)
+    # Empty state: a compact hero + one-click suggestions (recruiters
+    # shouldn't have to type into an unfamiliar dataset).
+    if not st.session_state.messages and not question:
+        st.markdown(
+            "<div class='ra-hero-title'>🛒 Ask Retail Assist</div>"
+            "<div class='ra-hero-sub'>A governed retail analytics assistant — "
+            "ask in plain English and get a correct, governed answer with a "
+            "visible query plan, or an honest refusal when it's out of scope."
+            "</div>",
+            unsafe_allow_html=True)
+        st.caption("Try one:")
+        cols = st.columns(len(EXAMPLES))
+        for col, ex in zip(cols, EXAMPLES):
+            label = ex if ex != EXAMPLES[-1] else f"{ex}  🚫"
+            if col.button(label, key=f"ex_{ex}", width='stretch',
+                          help="Click to ask"):
+                st.session_state.pending_question = ex
+                st.rerun()
 
-    with st.form("ask_form", clear_on_submit=False):
-        question = st.text_input(
-            "Your question",
-            placeholder="e.g., Which customer segments drive revenue?")
-        submitted = st.form_submit_button("Ask", type="primary")
-    if submitted and question.strip():
-        run_ask(sem, question.strip(), llm_active, api_key)
-
-    result = st.session_state.last_result
-
-    if result is None:
-        st.info(
-            "👋 **Welcome to Retail Assist.** Ask any business question about "
-            "this retail dataset — revenue, orders, units, AOV, margin — by "
-            "month, product, category, country, segment, channel, promo, or "
-            "fulfillment. Click an example above or type your own. "
-            "Questions outside the governed scope are refused honestly, "
-            "never guessed — try the last example to see it.")
-    else:
-        route, plan, df = result["route"], result["plan"], result["df"]
-        st.caption(f'You asked: "{result["question"]}"')
-
-        # ----- Answer -----
-        if result["llm_answer"]:
-            c1, c2 = st.columns(2)
-            with c1:
-                st.markdown("**Deterministic answer** (template-worded)")
-                st.success(result["det_answer"])
-            with c2:
-                st.markdown(f"**LLM-worded answer** ({GEMINI_MODEL})")
-                st.success(result["llm_answer"])
-            st.caption("Same query plan, same numbers — the LLM changes the "
-                       "wording, never the math.")
-        elif route["intent"] == "unsupported":
-            st.error(result["det_answer"])
+    # Conversation history
+    for msg in st.session_state.messages:
+        if msg["role"] == "user":
+            with st.chat_message("user", avatar=USER_AVATAR):
+                st.markdown(msg["content"])
         else:
-            st.success(result["det_answer"])
+            with st.chat_message("assistant", avatar=ASSISTANT_AVATAR):
+                render_assistant(msg["result"])
 
-        # ----- Details, demoted to small tabs -----
-        if route["intent"] != "supported_questions":
-            t_chart, t_plan, t_data = st.tabs(
-                ["📊 Chart", "🔍 Query plan", "📋 Data"])
+    # New turn
+    if question:
+        with st.chat_message("user", avatar=USER_AVATAR):
+            st.markdown(question)
+        st.session_state.messages.append({"role": "user", "content": question})
 
-            with t_chart:
-                fig = make_chart(plan, df) if plan else None
-                if fig:
-                    st.plotly_chart(fig, width='stretch')
-                elif df is not None and len(df) > 0:
-                    st.caption("Single-value result — no chart needed.")
-                else:
-                    st.caption("No data to chart for this question.")
-
-            with t_plan:
-                meta = {
-                    "Original question": result["question"],
-                    "Routed by": result["routed_by"],
-                    "Detected intent": route["intent"],
-                    "Confidence": route["confidence"],
-                    "Metrics used": ", ".join(route["metrics"]) or "—",
-                    "Dimensions used": ", ".join(route["dimensions"]) or "—",
-                    "Time window": plan["time_window"] if plan else "—",
-                    "SQL template": plan["template_name"] if plan
-                                    else "— (no SQL executed)",
-                }
-                if route["unsupported_reason"]:
-                    meta["Refusal reason"] = route["unsupported_reason"]
-                st.table(pd.DataFrame(meta.items(), columns=["Field", "Value"]))
-                if plan:
-                    st.code(plan["sql"], language="sql")
-                else:
-                    st.caption("Refused questions never reach SQL — that is "
-                               "the governance working.")
-
-            with t_data:
-                if df is not None and len(df) > 0:
-                    st.dataframe(df, width='stretch', hide_index=True)
-                else:
-                    st.caption("No rows — nothing was queried.")
+        with st.chat_message("assistant", avatar=ASSISTANT_AVATAR):
+            with st.spinner("Analyzing…"):
+                result = answer_question(sem, question, llm_active, api_key)
+            render_assistant(result)
+        st.session_state.messages.append({"role": "assistant", "result": result})
 
 # ---------------------------------------------------------------------------
 # Page: Supported Questions

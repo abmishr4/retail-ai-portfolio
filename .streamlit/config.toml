@@ -1,0 +1,11 @@
+# Shared Streamlit theme for the portfolio apps (Retail Assist, Retail Rec).
+# Only primaryColor + font are set here so the app still follows each viewer's
+# light/dark preference; the rest of the modern styling is applied as scoped
+# CSS inside the apps (theme-neutral rgba, adapts to both modes).
+
+[theme]
+primaryColor = "#6366F1"      # indigo accent
+font = "sans serif"
+
+[browser]
+gatherUsageStats = false
